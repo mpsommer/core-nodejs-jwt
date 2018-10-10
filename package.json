@@ -1,0 +1,26 @@
+{
+  "name": "core-nodejs-jwt",
+  "version": "1.0.0",
+  "description": "Create jwt with RSA-SHA256 algorithm using only core node.",
+  "main": "jwt.js",
+  "scripts": {
+	"start": "npm run build",
+    "build": "tsc -p .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mpsommer/core-nodejs-jwt.git"
+  },
+  "keywords": [],
+  "author": "michael sommer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mpsommer/core-nodejs-jwt/issues"
+  },
+  "homepage": "https://github.com/mpsommer/core-nodejs-jwt#readme",
+  "devDependencies": {
+    "@types/node": "^10.11.6",
+    "typescript": "^3.1.2"
+  }
+}
