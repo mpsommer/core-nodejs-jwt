@@ -12,13 +12,13 @@ const util = require('util');
 // ssh-keygen -f node_key.pem.pub -m 'PEM' -e > node_key.pub.pem
 // chmod 600 node_key.pub.pem
 
-let privateKeyPath = 'path';
-let publicKeyPath = 'path';
+const privateKeyPath = '/path';
+const publicKeyPath = '/path';
 const privateKey = fs.readFileSync(privateKeyPath).toString();
-let publicKey = fs.readFileSync(publicKeyPath).toString();
+const publicKey = fs.readFileSync(publicKeyPath).toString();
 
 // Expiration date for the jwt.
-let yearFromNow = new Date().setFullYear(new Date().getFullYear() + 1)
+const yearFromNow = new Date().setFullYear(new Date().getFullYear() + 1);
 
 // Optional: 'secret': 'password',
 let payload = {
@@ -42,9 +42,6 @@ function JWT() {
   }
 }
 
-// TODO: GET type checking working somehow.
-
-
 /**
  * @param {string} jwt 
  * @param {string | Object} publicKey 
@@ -60,19 +57,27 @@ function verify(jwt, publicKey) {
 }
 
 /**
- * @param {Object} payload
+ * @param {Object} payload,
+ * @param {Object} header,
  * @param {string} privateKey
  */
-function sign(payload, privateKey) {
-  payload = serializeInput(payload);
+function sign(payload, header, privateKey) {
   let encodedHeaderPayload = encodeAndFormat(header, payload, 'utf8');
   const signer = crypto.createSign('RSA-SHA256');
-  // TODO: left off header, get documentation for signer...
+  // Update the Sign content with the given data
   signer.update(encodedHeaderPayload)
+  // Calculates the signature on all the data passed through using either 
+  // sign.update() or sign.write(). Generates and returns a signature.
   let signature = signer.sign(privateKey, 'base64');
   return util.format('%s.%s', encodedHeaderPayload, signature);
 }
 
+/**
+ * 
+ * @param {Object} header 
+ * @param {Object} payload 
+ * @param {string} encoding 
+ */
 function encodeAndFormat(header, payload, encoding) {
   encoding = encoding || 'utf8';
   let encodedHeader = base64url(toBuffer(header));
@@ -80,7 +85,11 @@ function encodeAndFormat(header, payload, encoding) {
   return util.format('%s.%s', encodedHeader, encodedPayload);
 }
 
-
+/**
+ * 
+ * @param {Object} val 
+ * @param {string} encoding 
+ */
 function toBuffer(val, encoding) {
   if (Buffer.isBuffer(val)) {
     return val;
@@ -89,14 +98,17 @@ function toBuffer(val, encoding) {
     return Buffer.from(val, encoding || 'utf8');
   }
   if (typeof val === 'number') {
-    // This won't work for very large or very small numbers, but is consistent
-    // with previous behaviour at least
+    // TODO: Use BigInt() here, to handle large numbers.
     val = val.toString();
     return Buffer.from(val, 'utf8');
   }
   return Buffer.from(JSON.stringify(val), 'utf8');
-};
+}
 
+/**
+ * 
+ * @param {Buffer} buf 
+ */
 function base64url(buf) {
   return buf
     .toString('base64')
@@ -105,31 +117,24 @@ function base64url(buf) {
     .replace(/\//g, '_');
 }
 
-
-function serializeInput(thing) {
-  if (!bufferOrString(thing)) {
-    thing = JSON.stringify(thing);
-  }
-  return thing;
+/**
+ * 
+ * @param {string} jwt 
+ */
+function getJWTSignature(jwt) {
+  return jwt.split('.')[2];
 }
 
-function bufferOrString(obj) {
-  return Buffer.isBuffer(obj) || typeof obj === 'string';
-}
-
-function getJWTSignature(jwsSig) {
-  return jwsSig.split('.')[2];
-}
-
-function getHeaderAndPayload(jwsSig) {
-  return jwsSig.split('.', 2).join('.');
+/**
+ * 
+ * @param {string} jwt 
+ */
+function getHeaderAndPayload(jwt) {
+  return jwt.split('.', 2).join('.');
 }
 
 
-let jwtTool = JWT();
-let jwt = jwtTool.sign(payload, privateKey);
-// console.log(`jwt: ${jwt}`);
-
-let ver = jwtTool.verify(jwt, publicKey);
-
+let jwtUtil = JWT();
+let jwt = jwtUtil.sign(payload, header, privateKey);
+let ver = jwtUtil.verify(jwt, publicKey);
 console.log(ver);
